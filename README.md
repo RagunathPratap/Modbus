@@ -1,49 +1,72 @@
-# Modbus Poll – Python Replica
+# Modbus Poll – Python Windows Application
 
-A comprehensive Python replica of the **Modbus Poll** master simulator, built with `tkinter` and `pymodbus` 3.x.
+A complete, production-quality Python replica of the **Modbus Poll** commercial master simulator. Built with `tkinter` (GUI), `pymodbus 3.x` (Modbus protocol), and `threading` (background polling).
+
+---
 
 ## Features
 
-- **Multiple Connection Types**: Modbus RTU, ASCII (serial), TCP, and UDP
-- **MDI Interface**: Multiple slave device windows inside the main application window
-- **Function Codes**: FC01, FC02, FC03, FC04, FC05, FC06, FC15, FC16
-- **Display Formats**: Signed Int, Unsigned Int, Hex, Binary, Float 32-bit (ABCD/CDAB/BADC/DCBA), Double 64-bit, ASCII String
-- **Address Styles**: 0-based or 1-based (40001 style)
-- **Configurable Scan Rate**: Millisecond-precision polling intervals
-- **Traffic Log**: View raw Modbus frames in real-time
-- **Configuration Save/Load**: JSON-based project files
-- **Status Bar**: Live connection status, Tx/Rx counters, error count
-- **Color Coding**: Green for valid data, red for errors/timeouts
+- **Multiple Connection Types**: Modbus RTU (serial), Modbus ASCII (serial), Modbus TCP, Modbus UDP
+- **MDI Interface**: Multiple independent slave-device poll windows
+- **All Standard Function Codes**: FC01–FC16 (read coils, discrete inputs, holding & input registers; write single/multiple coils & registers)
+- **10 Display Formats**: Signed/Unsigned Int, Hex, Binary, Float 32-bit (ABCD/CDAB/BADC/DCBA), Double 64-bit, ASCII String
+- **Address Modes**: 0-based or 1-based (40001-style)
+- **Configurable Scan Rate**: Millisecond-precision polling intervals per window
+- **Traffic Monitor**: Real-time view of raw Modbus TX/RX frames
+- **Color-coded Status**: Green = OK, Red = error/timeout
+- **Configuration Files**: Save/load all settings as JSON (`.mbp`)
+- **Live Status Bar**: Connection type, Tx/Rx counters, error count, clock
+
+---
 
 ## Requirements
 
-- Python 3.8 or higher
-- Windows (primary target; works on Linux/macOS with minor adjustments)
+| Requirement | Version |
+|-------------|---------|
+| Python      | 3.8+    |
+| pymodbus    | ≥ 3.0.0 |
+| pyserial    | ≥ 3.5   |
+
+> **Windows** is the primary target platform. The application also runs on Linux and macOS.
+
+---
 
 ## Installation
 
-### 1. Install Python
+### Step 1 – Install Python
 
-Download and install Python 3.8+ from https://www.python.org/downloads/
+Download Python 3.8 or later from <https://www.python.org/downloads/> and run the installer.  
+Make sure **"Add Python to PATH"** is checked during installation.
 
-### 2. Create a Virtual Environment (recommended)
+### Step 2 – (Recommended) Create a Virtual Environment
+
+Open a Command Prompt or PowerShell window in the project folder:
 
 ```cmd
 python -m venv venv
 venv\Scripts\activate
 ```
 
-### 3. Install Dependencies
+On Linux / macOS:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### Step 3 – Install Dependencies
 
 ```cmd
 pip install -r requirements.txt
 ```
 
-Or install manually:
+Or install packages manually:
 
 ```cmd
-pip install pymodbus>=3.0.0 pyserial>=3.5
+pip install "pymodbus>=3.0.0" "pyserial>=3.5"
 ```
+
+---
 
 ## Running the Application
 
@@ -51,162 +74,221 @@ pip install pymodbus>=3.0.0 pyserial>=3.5
 python modbus_poll.py
 ```
 
-## Usage Guide
+The main window opens with an empty workspace. Use the menus or toolbar to create slave windows and connect to a device.
 
-### Connecting to a Device
+---
 
-#### Modbus TCP
-1. Go to **Connection → Connection Setup...**
-2. Select **Modbus TCP/IP** from the connection type dropdown
-3. Enter the device IP address (e.g., `192.168.1.10`)
-4. Enter the port number (default: `502`)
-5. Set the timeout (default: `1000` ms)
-6. Click **OK**
-7. Go to **Connection → Connect** (or press the Connect toolbar button)
+## Quick-Start Walkthrough
 
-#### Modbus RTU (Serial)
-1. Go to **Connection → Connection Setup...**
-2. Select **Modbus RTU** from the connection type dropdown
-3. Choose the COM port (e.g., `COM3`)
-4. Set baud rate (e.g., `9600`)
-5. Configure data bits, parity, and stop bits to match your device
-6. Click **OK**
-7. Go to **Connection → Connect**
+### 1. Configure the Connection
 
-### Configuring a Slave Window
+Go to **Connection → Connection Setup…** (or click the **Connect** toolbar button to open setup automatically on first run).
 
-1. After connecting, a default slave window appears
-2. Go to **Setup → Read/Write Definition...**
-3. Configure:
-   - **Slave ID**: The Modbus device address (1-247)
-   - **Function Code**: Select the appropriate FC (e.g., FC03 for holding registers)
-   - **Starting Address**: First register address to read
-   - **Quantity**: Number of registers/coils to read
-   - **Scan Rate**: Polling interval in milliseconds (default: 1000)
-4. Click **OK** — polling begins automatically
+**Modbus TCP / UDP**
 
-### Reading Registers
+| Field       | Description                          | Default     |
+|-------------|--------------------------------------|-------------|
+| IP Address  | Target device IP or hostname         | `127.0.0.1` |
+| Port        | Modbus TCP port                      | `502`       |
+| Timeout (s) | Response timeout                     | `1.0`       |
 
-Once configured, the slave window displays a table with columns:
-- **Row**: Sequential row number
-- **Address**: Register address (0-based or 40001-style based on View setting)
-- **Value**: Raw integer value
-- **Formatted**: Value in the selected display format
-- **Alias**: User-defined label (double-click to edit)
+**Modbus RTU / ASCII (Serial)**
 
-### Writing Values
+| Field      | Description                                | Default |
+|------------|--------------------------------------------|---------|
+| COM Port   | Serial port (e.g. `COM3`, `/dev/ttyUSB0`)  | `COM1`  |
+| Baud Rate  | Must match device                          | `9600`  |
+| Data Bits  | 7 or 8                                     | `8`     |
+| Parity     | None / Even / Odd / Mark / Space           | `None`  |
+| Stop Bits  | 1 / 1.5 / 2                                | `1`     |
+| RTS / DTR  | Enable hardware flow control if needed     | Off     |
 
-- **Double-click** any register row to open the Write Value dialog
-- Enter the new value and click **Write**
-- For coils (FC01/FC05), enter `0` (OFF) or `1` (ON)
-- For registers (FC03/FC06/FC16), enter the integer value
+Click **OK** to save settings.
 
-### Display Formats
+### 2. Create a Slave Poll Window
 
-Change the display format via **View → Display as**:
+Go to **File → New** (or press **Ctrl+N**).  
+The **Read / Write Definition** dialog opens:
 
-| Format | Description |
-|--------|-------------|
-| Signed Int | 16-bit signed integer (-32768 to 32767) |
-| Unsigned Int | 16-bit unsigned integer (0 to 65535) |
-| Hex | Hexadecimal (e.g., `0x1A2B`) |
-| Binary | Binary string (e.g., `0b0001101000101011`) |
-| Float ABCD | 32-bit IEEE 754 float, big-endian word order |
-| Float CDAB | 32-bit IEEE 754 float, little-endian word order |
-| Float BADC | 32-bit IEEE 754 float, byte-swapped big-endian |
-| Float DCBA | 32-bit IEEE 754 float, byte-swapped little-endian |
-| Double | 64-bit IEEE 754 double |
-| ASCII | ASCII string representation |
+| Setting         | Description                                    | Range / Default       |
+|-----------------|------------------------------------------------|-----------------------|
+| Slave ID        | Modbus device address                          | 1–247, default `1`    |
+| Function Code   | FC01–FC16                                      | FC03 (holding regs)   |
+| Starting Address| First register / coil address                  | 0–65535, default `0`  |
+| Quantity        | Number of registers / coils to read            | 1–125, default `10`   |
+| Scan Rate (ms)  | Polling interval in milliseconds               | 100–60000, default `1000` |
+| Display Format  | How raw values are shown                       | Signed Int (16-bit)   |
+| Address Display | 0-based (0, 1, 2…) or 1-based (40001, 40002…) | 0-based               |
 
-### Address Display
+Click **OK**. A slave window appears.
 
-Toggle between address styles via **View → Address Base**:
-- **0-based**: Addresses shown as 0, 1, 2, ...
-- **1-based (40001)**: Addresses shown as 40001, 40002, ... (offset depends on FC)
+### 3. Connect and Start Polling
 
-### Traffic Log
+Click **Connection → Connect** (or the **Connect** toolbar button).  
+If the device is reachable, the status bar turns green and all open slave windows start polling at their configured scan rate.
 
-- Go to **View → Show Traffic Log** to open the traffic monitor
-- Shows timestamp, direction (Tx/Rx), and raw hex bytes for every frame
-- Use **Clear** button to reset the log
+### 4. Reading Data
 
-### Multiple Slave Windows
+Each slave window shows a live-updating table:
 
-- Go to **File → New** to create an additional slave window
-- Each window can monitor a different slave ID, FC, or address range
-- Arrange windows via **Window → Cascade** or **Window → Tile**
+| Column        | Description                                  |
+|---------------|----------------------------------------------|
+| **Address**   | Register / coil address                      |
+| **Alias**     | User-defined label (right-click to edit)     |
+| **Value**     | Formatted value in the selected display mode |
+| **Raw (Hex)** | Raw 16-bit value in hexadecimal              |
+| **Status**    | `OK` or error description                    |
 
-### Saving and Loading Configurations
+Rows turn **red** on communication errors and **green** on successful reads.
 
-- **File → Save** / **File → Save As**: Save current window layout and settings to a `.json` file
-- **File → Open**: Load a previously saved configuration
-- Configuration files store connection settings, all slave window definitions, and display preferences
+### 5. Writing Values
+
+**Double-click** any row to open the **Write Value** dialog.
+
+- For coils (FC01 / FC05): enter `0` (OFF) or `1` (ON)
+- For registers (FC03 / FC06 / FC16): enter a decimal integer (`1234`) or hex (`0x04D2`)
+
+Click **Write** to send the value. The next poll cycle will confirm the updated value.
+
+---
+
+## Display Formats Reference
+
+| Format              | Description                                                |
+|---------------------|------------------------------------------------------------|
+| Signed Int (16-bit) | Interprets the register as a signed 16-bit integer (−32768 to +32767) |
+| Unsigned Int (16-bit)| Raw unsigned value (0 to 65535)                          |
+| Hex                 | Four-digit hexadecimal (`0x1A2B`)                         |
+| Binary              | 16-bit binary string (`0001101000101011`)                  |
+| Float 32-bit ABCD   | IEEE 754 float, big-endian word order (most common)        |
+| Float 32-bit CDAB   | IEEE 754 float, little-endian word order                   |
+| Float 32-bit BADC   | IEEE 754 float, byte-swapped big-endian                    |
+| Float 32-bit DCBA   | IEEE 754 float, byte-swapped little-endian                 |
+| Double 64-bit       | 64-bit IEEE 754 double (4 consecutive registers)           |
+| ASCII String        | Two ASCII characters per register (high byte + low byte)   |
+
+---
 
 ## Function Code Reference
 
-| FC | Name | Description |
-|----|------|-------------|
-| FC01 | Read Coils | Read output coil status (bit) |
-| FC02 | Read Discrete Inputs | Read input status (bit) |
-| FC03 | Read Holding Registers | Read output registers (16-bit) |
-| FC04 | Read Input Registers | Read input registers (16-bit) |
-| FC05 | Write Single Coil | Write one output coil |
-| FC06 | Write Single Register | Write one holding register |
-| FC15 | Write Multiple Coils | Write multiple output coils |
-| FC16 | Write Multiple Registers | Write multiple holding registers |
+| FC  | Name                      | Read / Write | Data Type   |
+|-----|---------------------------|--------------|-------------|
+| FC01| Read Coils                | Read         | Bit (0/1)   |
+| FC02| Read Discrete Inputs      | Read         | Bit (0/1)   |
+| FC03| Read Holding Registers    | Read         | 16-bit word |
+| FC04| Read Input Registers      | Read         | 16-bit word |
+| FC05| Write Single Coil         | Write        | Bit (0/1)   |
+| FC06| Write Single Register     | Write        | 16-bit word |
+| FC15| Write Multiple Coils      | Write        | Bit array   |
+| FC16| Write Multiple Registers  | Write        | 16-bit array|
+
+---
 
 ## Modbus Exception Codes
 
-| Code | Name | Description |
-|------|------|-------------|
-| 01 | Illegal Function | FC not supported by device |
-| 02 | Illegal Data Address | Address out of range |
-| 03 | Illegal Data Value | Value out of range |
-| 04 | Slave Device Failure | Device internal error |
-| 05 | Acknowledge | Command accepted, processing |
-| 06 | Slave Device Busy | Device busy, retry later |
-| 08 | Memory Parity Error | Memory error detected |
-| 0A | Gateway Path Unavailable | Gateway misconfigured |
-| 0B | Gateway Target Failed | No response from target |
+| Code | Name                                  |
+|------|---------------------------------------|
+| 01   | Illegal Function                      |
+| 02   | Illegal Data Address                  |
+| 03   | Illegal Data Value                    |
+| 04   | Server Device Failure                 |
+| 05   | Acknowledge                           |
+| 06   | Server Device Busy                    |
+| 08   | Memory Parity Error                   |
+| 0A   | Gateway Path Unavailable              |
+| 0B   | Gateway Target Device Failed to Respond|
+
+---
+
+## Traffic Monitor
+
+Open with **View → Show Traffic** (or the **Traffic** toolbar button).
+
+- **Blue lines** — requests sent by the master (TX)
+- **Green lines** — responses received from the slave (RX)
+- Timestamp format: `HH:MM:SS.mmm`
+- Click **Clear** to reset the log
+
+---
+
+## Saving and Loading Configurations
+
+| Action       | Menu                        | Shortcut |
+|--------------|-----------------------------|----------|
+| Save         | File → Save                 | Ctrl+S   |
+| Save As      | File → Save As…             |          |
+| Open / Load  | File → Open…                | Ctrl+O   |
+
+Configuration files use `.mbp` extension (JSON format). They store:
+- Connection settings (type, host, port, baud rate, etc.)
+- All slave window definitions (slave ID, FC, address, quantity, scan rate, aliases, display format)
+
+---
+
+## Window Management
+
+| Action           | Menu                      |
+|------------------|---------------------------|
+| Cascade windows  | Window → Cascade          |
+| Tile windows     | Window → Tile             |
+| Close all        | Window → Close All        |
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Action                         |
+|----------|--------------------------------|
+| Ctrl+N   | New slave window               |
+| Ctrl+O   | Open configuration file        |
+| Ctrl+S   | Save configuration file        |
+| Alt+F4   | Exit application               |
+
+---
 
 ## Troubleshooting
 
 ### Cannot connect via TCP
-- Verify the IP address and port are correct
-- Ensure no firewall is blocking port 502
-- Check that the Modbus device is powered on and reachable (`ping <ip>`)
+1. Verify the IP address and port (`502` is standard; some devices use `5020` or others).
+2. Run `ping <ip>` to confirm network reachability.
+3. Check for firewalls blocking port 502.
+4. Some simulators (e.g. ModRSsim2, Diagslave) must be started before connecting.
 
-### Cannot connect via Serial (RTU)
-- Ensure the correct COM port is selected (check Device Manager)
-- Verify baud rate, data bits, parity, and stop bits match the device
-- Check that no other application is using the COM port
-- Try enabling RTS/DTR if required by your RS-232/RS-485 converter
+### Cannot connect via Serial (RTU/ASCII)
+1. Open **Device Manager** and confirm the COM port number.
+2. Ensure no other program (PuTTY, another logger) holds the port open.
+3. Match **all** serial parameters (baud, parity, stop bits, data bits) to the device.
+4. For RS-485 converters: try enabling **RTS Control** in Connection Setup.
 
 ### "No Response" / Timeout Errors
-- Increase the timeout value in Connection Setup
-- Reduce the scan rate (increase the interval)
-- Verify the slave ID matches the physical device address
+- Increase the **Timeout** value in Connection Setup.
+- Reduce the polling frequency (increase **Scan Rate**).
+- Confirm the **Slave ID** matches the device's DIP switch / configuration.
 
-### Garbled Data / Wrong Values
-- Check that the byte order / word order matches your device
-- Verify the function code is correct for the register type
-- Ensure the starting address is correct (some devices use 0-based, others 1-based internally)
+### Garbled / Unexpected Register Values
+- Check **byte order**: try different Float format variants (ABCD vs CDAB vs BADC vs DCBA).
+- Confirm **Starting Address**: some devices count from 0, others from 1 internally.
+- Verify the correct **Function Code** for the register type.
 
-### pymodbus Import Error
-- Re-run `pip install pymodbus>=3.0.0`
-- Ensure you are using the correct Python environment
+### `ImportError: No module named 'pymodbus'`
+```cmd
+pip install "pymodbus>=3.0.0" pyserial
+```
+Make sure you are using the same Python environment you launched the application from.
 
-## Keyboard Shortcuts
+---
 
-| Shortcut | Action |
-|----------|--------|
-| Ctrl+N | New slave window |
-| Ctrl+O | Open configuration |
-| Ctrl+S | Save configuration |
-| F5 | Connect |
-| F6 | Disconnect |
-| F2 | Read/Write Definition |
+## Project Structure
+
+```
+Modbus/
+├── modbus_poll.py      # Main application (single-file, self-contained)
+├── requirements.txt    # Python package dependencies
+└── README.md           # This file
+```
+
+---
 
 ## License
 
-This software is provided for educational and development purposes. It is a Python implementation inspired by the Modbus Poll commercial product by WinTech A/S.
+This software is provided for educational and development purposes as a Python implementation inspired by the Modbus Poll commercial product by WinTech A/S. It is not affiliated with or endorsed by WinTech A/S.
