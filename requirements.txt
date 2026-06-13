@@ -1,0 +1,4 @@
+pymodbus>=3.0.0
+pyserial>=3.5
+tkinter-tooltip>=2.1.0
+Pillow>=9.0.0
